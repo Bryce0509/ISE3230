@@ -1,0 +1,85 @@
+import cvxpy as cp
+import numpy as np
+
+#Decision Variables
+x = cp.Variable((15,8), boolean = True)
+t = cp.Variable(integer = True)
+y = cp.Variable(19, boolean = True)
+
+#big constant that relaxes constraints
+M = 1000000000000
+
+#t being the number of semesters it takes to graduate
+obj_func = t
+
+constraints = []
+
+#all the values t could be from 1 to 8
+constraints.append(t>=1)
+constraints.append(t<=8)
+
+#all the course paths for DA majors
+#the longest path will place a lower bound constraint how the minimum of semesters it takes
+constraints.append(x[0,0]+x[1,1]+x[2,2]+x[3,3]<=t)
+constraints.append(x[0,0]+x[1,1]+x[4,2]+x[3,3]<=t)
+constraints.append(x[0,0]+x[1,1]+x[4,2]+x[5,3]<=t)
+constraints.append(x[0,0]+x[1,1]+x[6,2]+x[7,3]<=t)
+constraints.append(x[0,0]+x[1,1]+x[6,2]+x[10,3]+x[5,4]<=t)
+constraints.append(x[0,0]+x[1,1]+x[6,2]+x[10,3]+x[12,4]<=t)
+constraints.append(x[0,0]+x[1,1]+x[6,2]+x[10,3]+x[13,4]+x[14,5]<=t)
+constraints.append(x[0,0]+x[1,1]+x[6,2]+x[10,3]+x[11,4]<=t)
+constraints.append(x[8,0]+x[9,1]+x[10,2]+x[12,3]<=t)
+constraints.append(x[8,0]+x[9,1]+x[10,2]+x[11,3]<=t)
+constraints.append(x[8,0]+x[9,1]+x[10,2]+x[13,3]+x[14,4]<=t)
+
+#number of pre-requisite constraints we want to enforce
+constraints.append(sum(y)==19)
+#number of classes we need to take at least
+constraints.append(sum(x)>=15)
+
+#all classes's pre-requisite constraints
+constraints.append(x[1,1]<= (0 + M*(y[0])))
+constraints.append(x[0,0]>= (1 + M*(1-y[0])))
+constraints.append(x[2,2]<= (0 + M*(y[1])))
+constraints.append(x[1,1]>= (1 + M*(1-y[1])))
+constraints.append(x[3,3]<= (0 + M*(y[2])))
+constraints.append(x[2,2]>= (1 + M*(1-y[2]))) 
+constraints.append(x[4,2]<= (0 + M*(y[3])))
+constraints.append(x[1,1]>= (1 + M*(1-y[3])))
+constraints.append(x[3,3]<= (0 + M*(y[4])))
+constraints.append(x[4,2]>= (1 + M*(1-y[4])))
+constraints.append(x[5,3]<= (0 + M*(y[5])))
+constraints.append(x[4,2]>= (1 + M*(1-y[5])))
+constraints.append(x[6,2]<= (0 + M*(y[6])))
+constraints.append(x[1,1]>= (1 + M*(1-y[6])))
+constraints.append(x[7,3]<= (0 + M*(y[7])))
+constraints.append(x[6,2]>= (1 + M*(1-y[7])))
+constraints.append(x[10,3]<= (0 + M*(y[8])))
+constraints.append(x[6,2]>= (1 + M*(1-y[8])))
+constraints.append(x[5,4]<= (0 + M*(y[9])))
+constraints.append(x[10,3]>= (1 + M*(1-y[9])))
+constraints.append(x[12,4]<= (0 + M*(y[10])))
+constraints.append(x[10,3]>= (1 + M*(1-y[10])))
+constraints.append(x[12,3]<= (0 + M*(y[11])))
+constraints.append(x[10,2]>= (1 + M*(1-y[11])))
+constraints.append(x[9,1]<= (0 + M*(y[12])))
+constraints.append(x[9,0]>= (1 + M*(1-y[12])))
+constraints.append(x[11,4]<= (0 + M*(y[13])))
+constraints.append(x[10,3]>= (1 + M*(1-y[13])))
+constraints.append(x[11,3]<= (0 + M*(y[14])))
+constraints.append(x[10,2]>= (1 + M*(1-y[14])))
+constraints.append(x[13,4]<= (0 + M*(y[15])))
+constraints.append(x[10,3]>= (1 + M*(1-y[15])))
+constraints.append(x[13,3]<= (0 + M*(y[16])))
+constraints.append(x[10,2]>= (1 + M*(1-y[16])))
+constraints.append(x[14,5]<= (0 + M*(y[17])))
+constraints.append(x[13,4]>= (1 + M*(1-y[17])))
+constraints.append(x[14,4]<= (0 + M*(y[18])))
+constraints.append(x[13,3]>= (1 + M*(1-y[18])))
+
+
+problem = cp.Problem(cp.Minimize(obj_func), constraints)
+problem.solve(solver=cp.GUROBI, verbose = False)
+
+print("Mininum number of semesters =")
+print(obj_func.value)
